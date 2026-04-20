@@ -71,12 +71,27 @@ module fsm_mestre_tb();
         stop = 1;
         ebusy=0;
         #10
-                if(eaddr === addr && edone==done && ebusy==busy) begin
+        if(eaddr === addr && edone==done && ebusy==busy) begin
             $display("PASS");
         end else begin
             $display("FAIL: eaddr=%b, ebusy=%b, edone=%b", eaddr, ebusy, edone);
         end
+        stop = 0;
+        op = 3'b000;
+        eaddr = 3'b000;
+        ebusy = 1;
         #10
+
+        ebusy=0;
+        start=0;
+        #1010
+        if(eaddr === addr && edone==done && ebusy==busy) begin
+            $display("PASS");
+        end else begin
+            $display("FAIL: eaddr=%b, ebusy=%b, edone=%b", eaddr, ebusy, edone);
+        end
+
+        #20
         $finish;
     end
 

@@ -17,13 +17,25 @@ reg state;
 parameter IDLE = 1'b0;      //Estado em que esta tudo pronto para uma nova operacao 
 parameter CALC = 1'b1;      //Estado em que esta calculando (busy)
 
+//contador para acabar caso passe de 100 ciclos de clk
+wire is_over;
+reg load;
+down_counter #(7) dut(
+    .clk(~clk), //para nao ocorrer checagem de estado ao mesmo tempo que is_over vira 1
+    .rst(1'b0),
+    .load(load),
+    .start(~load),
+    .data_in(7'b1100100), //=100 (ciclos para voltar para IDLE)
+    .is_over(is_over)
+);
+
 always @(posedge clk) begin //logica de proximo estado
     case (state)
         IDLE:
             if (start)
                 state = CALC;
         CALC:
-            if(stop) 
+            if(stop || is_over) 
                 state = IDLE;
         default:
             state = IDLE;
@@ -34,10 +46,12 @@ always @(state) begin //logica de estado
     case (state)
         IDLE: begin
             calculating = 1'b0;
+            load= 1'b1;
         end
         CALC: begin
             addr =  op;
             calculating = 1'b1;
+            load = 1'b0;   //comeca a contar
         end
         default:
             state = IDLE;
