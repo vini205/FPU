@@ -37,7 +37,7 @@ always @(state) begin //logica de estado
         end
         CALC: begin
             addr =  op;
-            calculating = 1'b0;
+            calculating = 1'b1;
         end
         default:
             state = IDLE;
