@@ -6,11 +6,13 @@ module fsm_mestre_tb();
     wire [2:0]addr;    //manda o endereco (da operacao) que sera utilizado
     wire busy;    //diz se ainda esta calculando
     wire done;     //inverso de ibusy
+    reg reset;
 
     fsm_mestre dut(
         .start(start),    //indica para a maquina que pode comecar
         .op(op),  //operacao a ser feita
         .clk(clk),      //clock do sistema
+        .reset(reset),
         .stop(stop),     //sinal interno que diz que acabou coma as contas
         .addr(addr),    //manda o endereco (da operacao) que sera utilizado
         .busy(busy),    //diz se ainda esta calculando
@@ -31,6 +33,7 @@ module fsm_mestre_tb();
 
         $monitor("Tempo=%0t | start=%b op=%b stop=%b addr=%b busy=%b done=%b", $time, start, op, stop, addr, busy, done);
         clk=0;
+        reset=0;
         ebusy=1'b0;
         #20
         if(eaddr === addr && edone==done && ebusy==busy) begin
@@ -85,6 +88,16 @@ module fsm_mestre_tb();
         ebusy=0;
         start=0;
         #1010
+        if(eaddr === addr && edone==done && ebusy==busy) begin
+            $display("PASS");
+        end else begin
+            $display("FAIL: eaddr=%b, ebusy=%b, edone=%b", eaddr, ebusy, edone);
+        end
+
+        //testando reset
+        reset=1;
+        start=1;
+        #20
         if(eaddr === addr && edone==done && ebusy==busy) begin
             $display("PASS");
         end else begin

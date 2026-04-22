@@ -2,6 +2,7 @@ module fsm_mestre(
     input start,    //indica para a maquina que pode comecar
     input [2:0]op,  //operacao a ser feita
     input clk,      //clock do sistema
+    input reset,    //reset do sistema
     input stop,     //sinal interno que diz que acabou coma as contas
     output reg [2:0]addr,    //manda o endereco (da operacao) que sera utilizado
     output busy,    //diz se ainda esta calculando
@@ -29,17 +30,21 @@ down_counter #(7) dut(
     .is_over(is_over)
 );
 
-always @(posedge clk) begin //logica de proximo estado
-    case (state)
-        IDLE:
-            if (start)
-                state = CALC;
-        CALC:
-            if(stop || is_over) 
+always @(posedge clk or posedge reset) begin //logica de proximo estado com reset
+    if (reset) begin
+        state = IDLE;
+    end else begin
+        case (state)
+            IDLE:
+                if (start)
+                    state = CALC;
+            CALC:
+                if(stop || is_over) 
+                    state = IDLE;
+            default:
                 state = IDLE;
-        default:
-            state = IDLE;
-    endcase
+        endcase
+    end
 end
 
 always @(state) begin //logica de estado
