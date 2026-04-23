@@ -4,7 +4,7 @@ module down_counter #(parameter N = 8) (
     input wire rst,
     input wire load,
     input wire start, 
-    input wire [N-1:0] data_in,
+    input wire [N-1:0] data_in, //o núemro de clks
     output reg [N-1:0] count,
     output wire is_over // acabou
 );
