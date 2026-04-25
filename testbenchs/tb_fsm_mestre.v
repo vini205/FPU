@@ -24,17 +24,20 @@ module fsm_mestre_tb();
     //expected
     reg [2:0]eaddr;
     reg ebusy;
-    wire edone;
-    assign edone = ~ebusy;
+    reg edone;
 
     initial begin
         $dumpfile("fsm_mestre_tb.vcd");
         $dumpvars(0, fsm_mestre_tb);
 
+        reset =1;
+        #10
+
         $monitor("Tempo=%0t | start=%b op=%b stop=%b addr=%b busy=%b done=%b", $time, start, op, stop, addr, busy, done);
         clk=0;
         reset=0;
         ebusy=1'b0;
+        edone =1'b0;
         #20
         if(eaddr === addr && edone==done && ebusy==busy) begin
             $display("PASS");
@@ -73,6 +76,7 @@ module fsm_mestre_tb();
         end
         stop = 1;
         ebusy=0;
+        edone =1'b1;
         #10
         if(eaddr === addr && edone==done && ebusy==busy) begin
             $display("PASS");
@@ -83,11 +87,13 @@ module fsm_mestre_tb();
         op = 3'b000;
         eaddr = 3'b000;
         ebusy = 1;
+        edone =0;
         #10
 
         ebusy=0;
         start=0;
-        #1010
+        edone =1;
+        #1000
         if(eaddr === addr && edone==done && ebusy==busy) begin
             $display("PASS");
         end else begin
@@ -97,6 +103,7 @@ module fsm_mestre_tb();
         //testando reset
         reset=1;
         start=1;
+        edone = 0;
         #20
         if(eaddr === addr && edone==done && ebusy==busy) begin
             $display("PASS");
