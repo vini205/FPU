@@ -1,4 +1,4 @@
-module multi_uc(
+module mult_uc(
     input clk,
     input reset,
     input exeption,
@@ -17,12 +17,12 @@ parameter OVER = 3'b100;
 //contador para acabar caso passe de 100 ciclos de clk
 wire down_over;
 reg load_down;
-down_counter #(6) dut(
+down_counter #(5) dut(
     .clk(~clk), //para nao ocorrer checagem de estado ao mesmo tempo que is_over vira 1
     .rst(1'b0),
     .load(load_down),
     .start(~load_down),
-    .data_in(6'b100000), //=32
+    .data_in(5'b10111), //=23
     .is_over(down_over)
 );
 
