@@ -44,36 +44,62 @@ module div_fd (
     assign div_zero = B_zero & ~A_zero;//Apenas se A != 0
 
 
+    /// subnormais
     wire [7:0] exp_A = a[30:23];
     wire [7:0] exp_B = b[30:23];
 
-    //Para subnormais
+    // O expoente efetivo de um subnormal 1
     wire [7:0] eff_exp_A = (~|exp_A) ? 8'd1 : exp_A;
     wire [7:0] eff_exp_B = (~|exp_B) ? 8'd1 : exp_B;
 
     wire [23:0] mant_A = {|exp_A, a[22:0]};
-    wire [23:0] mant_B = {|exp_B,b[22:0]};
+    wire [23:0] mant_B = {|exp_B, b[22:0]};
+
+    // Contar zero a esquerda
+    wire [4:0] lz_A =
+        mant_A[23] ? 5'd0 : mant_A[22] ? 5'd1 : mant_A[21] ? 5'd2 : mant_A[20] ? 5'd3 :
+        mant_A[19] ? 5'd4 : mant_A[18] ? 5'd5 : mant_A[17] ? 5'd6 : mant_A[16] ? 5'd7 :
+        mant_A[15]? 5'd8 : mant_A[14] ? 5'd9 : mant_A[13] ? 5'd10: mant_A[12] ? 5'd11:
+        mant_A[11] ? 5'd12: mant_A[10] ? 5'd13: mant_A[9]  ? 5'd14: mant_A[8]  ? 5'd15:
+        mant_A[7]  ? 5'd16: mant_A[6]   ? 5'd17: mant_A[5]  ? 5'd18: mant_A[4]  ? 5'd19:
+        mant_A[3]  ? 5'd20: mant_A[2]  ? 5'd21: mant_A[1]  ? 5'd22: mant_A[0]  ? 5'd23: 5'd24;
+
+    wire [4:0] lz_B =
+        mant_B[23] ? 5'd0 : mant_B[22] ? 5'd1 : mant_B[21] ? 5'd2 : mant_B[20] ? 5'd3 :
+        mant_B[19] ? 5'd4 : mant_B[18]   ? 5'd5 : mant_B[17] ? 5'd6 : mant_B[16] ? 5'd7 :
+        mant_B[15] ? 5'd8 : mant_B[14]   ? 5'd9 : mant_B[13] ? 5'd10: mant_B[12] ? 5'd11:
+        mant_B[11] ? 5'd12: mant_B[10] ? 5'd13: mant_B[9]  ? 5'd14: mant_B[8]  ? 5'd15:
+        mant_B[7]  ? 5'd16: mant_B[6] ? 5'd17: mant_B[5]  ? 5'd18: mant_B[4]  ? 5'd19:
+        mant_B[3]  ? 5'd20: mant_B[2] ? 5'd21: mant_B[1]  ? 5'd22: mant_B[0]  ? 5'd23: 5'd24;
+
+    // Alinha o bit 1
+    wire [23:0] norm_mant_A = mant_A << lz_A;
+    wire [23:0] norm_mant_B = mant_B << lz_B;
+
     wire [25:0] quotient;
     wire [25:0] remainder;
+    
     restoring_div #(.N(26)) divisor_mant (
         .clk(clk),
         .rst(rst),
         .start(start_div),
-        .dividend({mant_A,2'b00}),//guard bits
-        .divisor({mant_B, 2'b00}),
+        .dividend({norm_mant_A, 2'b00}), 
+        .divisor({norm_mant_B, 2'b00}),
         .quotient(quotient),
         .remainder(remainder),
         .done(div_done)
     );
+
     assign msb_is_zero = ~quotient[25];
     wire sign_out = a[31] ^ b[31];
 
-    wire [9:0] exp_A_ext = {2'b00, eff_exp_A};// estendo para ver o overflow/underflow 
-    wire [9:0] exp_B_ext = {2'b00, eff_exp_B};
+    wire [9:0] exp_A_ext = {2'b00, eff_exp_A} - lz_A; 
+    wire [9:0] exp_B_ext = {2'b00, eff_exp_B} - lz_B;
+
     wire [9:0] bias = 10'd127;
     wire [9:0] exp_calc;
     wire [9:0] exp_sub_tot;
-    
+        
     // SUBTRAÇÂO DOS EXP
     full_subtractor_nbit #(.N(10)) sub_exp (
         .a(exp_A_ext),
@@ -141,7 +167,7 @@ module div_fd (
 
     // Invalid
     wire zero_por_zero = A_zero & B_zero;
-    wire inf_por_inf = is_inf_A & is_inf_B;
+    wire inf_por_inf = (is_inf_A| is_ninf_A) & (is_inf_B| is_ninf_B);
     assign f_inv_op = is_snan_A | is_snan_B | zero_por_zero | inf_por_inf|is_qnan_A | is_qnan_B;
 
     //Underflow

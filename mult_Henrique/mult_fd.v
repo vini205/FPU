@@ -30,6 +30,9 @@ exeptions_number_detector b_ex(
 
 assign f_inv_op = sNaNa | sNaNb | ((zeroa | zerob) & (infa | infb));
 
+assign f_inv_op = sNaNa | sNaNb ;
+
+//Extremos
 wire exeptiona, exeptionb;
 assign exeptiona = zeroa | sNaNa | qNaNa | pos_infa | neg_infa;
 assign exeptionb = zerob | sNaNb | qNaNb | pos_infb | neg_infb;
@@ -41,7 +44,7 @@ wire infa, infb;
 assign infa = pos_infa | neg_infa;
 assign infb = pos_infb | neg_infb;
 wire inf, pos_inf, neg_inf;
-assign inf = (infa & ~exeptionb) | (infb & ~exeptiona) | (infa & infb);
+assign inf = (infa & ~exeptionb) | (infb & ~exeptiona) | (infa & infb);//resultado é infinito
 assign pos_inf = inf &  ~(a[31]^b[31]);
 assign neg_inf = inf & (a[31] ^b[31]);
 

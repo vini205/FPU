@@ -188,6 +188,16 @@ module tb_tp_add_sub;
         // -3.0 - (-5.0) = 2.0
         run_test("Subtracao (-A - -B inv)", 32'hc0400000, 32'hc0a00000, 1'b1, 32'h40000000, 1'b0);
 
+        // 12 - (-26) = 38
+    run_test("Subtracao: 12 - (-26)", 
+        32'b01000001010000000000000000000000, // A: 12.0
+        32'b11000001110100000000000000000000, // B: -26.0
+        1'b1,                                 // Flag is_sub = 1 (Subtração)
+        32'b01000010000110000000000000000000, // Esperado: 38.0
+        1'b0                                  // Inexact flag = 0
+    );
+        
+
         $display("=== SIMULACAO CONCLUIDA ===\n");
         $finish;
     end

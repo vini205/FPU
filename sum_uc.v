@@ -22,7 +22,8 @@ localparam  IDLE = 3'd0,
             ADD = 3'd3,
             LOAD_NORMALIZED = 4'd4,
             NORMALIZE = 3'd5,
-            ROUND = 3'd6;
+            ROUND = 3'd6,
+            WAIT = 3'd7;
             
 reg [2:0] state; 
 reg [2:0] next_state;
@@ -70,12 +71,15 @@ always @(*) begin
             load_norm_shift =1'b0;
             if (cout_sum) begin
                 shift_right_norm = 1'b1;
-                next_state = ROUND;
+                next_state = WAIT;
             end else if (!(is_normalized ||exp_is_zero)) begin
                 shift_left_norm = 1'b1;
             end else begin
                 next_state = ROUND;
             end
+        end
+        WAIT: begin
+            next_state = ROUND;//Para dar tempo de carregar a resposta (dps do shift)
         end
         ROUND:begin
             done = 1'b1;

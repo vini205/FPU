@@ -30,21 +30,21 @@ module bus_controler(
     wire [31:0] c0;
     wire f_inv_op0, f_div_zero0, f_overflow0 , f_underflow0 , f_inexact0;
     wire over0; //=done
-    //instanciar o escravo 0 (Por  favor usar reset como ~es_0, alem dos outputs acima)
+    //instanciar o escravo 0 (ADD_SUB) (Por  favor usar reset como ~es_0, alem dos outputs acima)
     tp_add_sub sum_sub(
         .clk(clk),
         .reset(~e_s0),
         .start(e_s0),
-        .is_sub(addr[2]),
+        .is_sub(addr[0]),// Soma ou sub
         .a(a),
         .b(b),
-        .result(c),
+        .result(c0),
         .f_div_zero(f_div_zero0),
         .f_overflow(f_overflow0),
         .f_underflow(f_underflow0),
         .f_inexact(f_inexact0),
         .f_inv_op(f_inv_op0),
-        .over(over)
+        .over(over0)
     );
     //
     assign f_div_zero0 = 1'b0;
@@ -53,15 +53,31 @@ module bus_controler(
     wire [31:0] c1;
     wire f_inv_op1, f_div_zero1, f_overflow1 , f_underflow1 , f_inexact1;
     wire over1; //=done
-    //instanciar o escravo 1 (Por  favor usar reset como ~es_1, alem dos outputs acima)
+    //instanciar o escravo 1 (MULT) (Por  favor usar reset como ~es_1, alem dos outputs acima)
     
     //
     assign f_div_zero1 = 1'b0;
-    
+
     wire [31:0] c2;
     wire f_inv_op2, f_div_zero2, f_overflow2 , f_underflow2 , f_inexact2;
     wire over2; //=done
-    //instanciar o escravo 2 (Por  favor usar reset como ~es_2, alem dos outputs acima)
+    //instanciar o escravo 2 (DIV) (Por  favor usar reset como ~es_2, alem dos outputs acima)
+
+    tp_div topLevel_div (
+        .clk(clk),
+        .rst(~e_s2),
+        .start(e_s2),
+        .a(a),
+        .b(b),
+        .result(c2),
+        .f_inv_op(f_inv_op2),
+        .f_div_zero(f_div_zero2),
+        .f_overflow(f_overflow2),
+        .f_underflow(f_underflow2),
+        .f_inexact(f_inexact2),
+        .done(over2)
+    );
+
 
     //
    
@@ -69,7 +85,7 @@ module bus_controler(
     wire [31:0] c3;
     wire f_inv_op3, f_div_zero3, f_overflow3 , f_underflow3 , f_inexact3;
     wire over3; //=done
-    //instancia do escravo 3
+    //instancia do escravo 3 (COMP)
         comparator comp(
             .eq(~addr[0]), //1 se eh EQ, 0 se eh SLT
             .clk(clk),
@@ -82,8 +98,8 @@ module bus_controler(
         );
     assign f_div_zero3= 1'b0;
     assign f_overflow3 = 1'b0;
-    assign f_underflow = 1'b0;
-    assign f_inexact = 1'b0;
+    assign f_underflow3 = 1'b0;
+    assign f_inexact3 = 1'b0;
     //
     
    assign c = (e_s0) ? c0 : (e_s1) ? c1 : (e_s2) ? c2 : (e_s3) ? c3 : 32'bz;

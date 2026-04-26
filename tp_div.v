@@ -2,7 +2,7 @@ module tp_div (
     input wire clk, rst, start,
     input wire [31:0] a, b,
     output wire [31:0] result,
-    output wire busy, done,
+    output wire done,
     output wire f_inv_op, f_div_zero, f_overflow, f_underflow, f_inexact
 );
 
@@ -16,7 +16,6 @@ module tp_div (
         .msb_is_zero(msb_is_zero),
         .div_zero(d_zero),
         .start_div(start_core),
-        .busy(busy),
         .load_norm_shift(load_norm),
         .shift_left_norm(shift_l),
         .done(done)
