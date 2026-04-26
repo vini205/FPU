@@ -27,7 +27,6 @@ module tb_div();
         .a(a),
         .b(b),
         .result(result),
-        .busy(busy),
         .done(done),
         .f_inv_op(f_inv_op),
         .f_div_zero(f_div_zero),

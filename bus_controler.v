@@ -66,7 +66,7 @@ module bus_controler(
     tp_div topLevel_div (
         .clk(clk),
         .rst(~e_s2),
-        .start(start),
+        .start(e_s2),
         .a(a),
         .b(b),
         .result(c2),
