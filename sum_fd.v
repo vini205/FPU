@@ -114,7 +114,7 @@ module sum_fd (
         .guards(guards)
     ); 
 
-    wire is_diff = (sign_A ^ sign_B) ^ is_sub;// Para saber se é uma soma ou subtração
+    wire is_diff = sign_A ^ eff_sign_B;// Para saber se é uma soma ou subtração
     wire [23:0] op_mant = is_diff ? (~shifted_mant) :shifted_mant;
     //Faz subtração com o complemento de 2 do menor
     wire [23:0] somaMant;
@@ -208,7 +208,7 @@ module sum_fd (
     wire [31:0] final_value = {true_sign_final, exp_pos_round, mantissa_final};
 
     // FLAGS
-    assign f_overflow = (exp_cout_round == 1) ;
+    assign f_overflow = (exp_pos_round >= 8'hFF);
     wire [31:0] infinity = {sign_final, 8'hFF, 23'd0};
     assign sum = f_overflow ? infinity : final_value;
 

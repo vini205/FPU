@@ -7,7 +7,6 @@ module div_uc (
     input div_zero,
 
     output reg start_div,
-    output reg busy,
     output reg load_norm_shift,
     output reg shift_left_norm,
     output reg done
@@ -26,7 +25,6 @@ module div_uc (
     always @(*) begin
         next_state = state;
         start_div = 1'b0;
-        busy = 1'b1; 
         load_norm_shift = 1'b0;
         shift_left_norm = 1'b0;
         done = 1'b0;
@@ -53,7 +51,6 @@ module div_uc (
                         shift_left_norm = 1'b1;
                     end
                     done = 1'b1;
-                    busy = 1'b0;
                     next_state = IDLE;
                     if(!start)begin
                         next_state = IDLE;
