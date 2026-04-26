@@ -8,12 +8,12 @@ module fpu (
 );
     wire over;
     wire [2:0]addr;
-    wire c_i; //interno, pode mudar enquanto done =1
-    reg  c_reg; //registra o resultado quando over =1
+    wire [31:0]c_i; //interno, pode mudar enquanto done =1
+    reg  [31:0]c_reg; //registra o resultado quando over =1
 
     bus_controler bus(
         .busy(busy),
-        .clk(clk),
+        .clk(clock),
         .reset(reset),
         .addr(addr),
         .a(a),
@@ -30,7 +30,7 @@ module fpu (
     fsm_mestre fsm(
         .start(start),    //indica para a maquina que pode comecar
         .op(op),  //operacao a ser feita
-        .clk(clk),      //clock do sistema
+        .clk(clock),      //clock do sistema
         .reset(reset),    //reset do sistema
         .stop(over),     //sinal interno que diz que acabou coma as contas
         .addr(addr),    //manda o endereco (da operacao) que sera utilizado
