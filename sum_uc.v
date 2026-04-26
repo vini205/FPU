@@ -48,7 +48,7 @@ always @(*) begin
         LOAD: begin
             next_state = SHIFT;
             load_shift = 1'b1;
-
+    
         end
         SHIFT: begin
             if(count_over) begin
