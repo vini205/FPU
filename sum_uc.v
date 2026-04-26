@@ -2,21 +2,18 @@ module sum_uc (
     input wire clk,
     input wire rst,
     input wire start,
-    input wire [23:0] mant_sum,
-    input wire [22:0] mant_final,
     input wire count_over,
-    input wire sum,
     input wire is_normalized,
     input wire exp_is_zero,
     input wire cout_sum,
 
-    output wire shift_right_norm,
-    output wire shift_left_norm,
-    output wire load_sum,
-    output wire load_shift,
-    output wire shift_mant,
-    output wire load_norm_shift,
-    output wire done
+    output reg shift_right_norm,
+    output reg shift_left_norm,
+    output reg load_sum,
+    output reg load_shift,
+    output reg shift_mant,
+    output reg load_norm_shift,
+    output reg done
 );
 
 localparam  IDLE = 3'd0,
@@ -42,6 +39,7 @@ always @(*) begin
     shift_left_norm = 1'b0;
     shift_right_norm  = 1'b0;
     load_sum = 1'b0;
+    load_norm_shift = 1'b0;
     done = 1'b0;
     case (state)
         IDLE: begin

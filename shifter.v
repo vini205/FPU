@@ -18,10 +18,8 @@ module shifter #( parameter N = 8 )(
 always @(posedge clk or posedge rst) begin
     if (rst) begin
         data_out <= {N{1'b0}};
-        counter <= 2'b00;
         guards <= 3'b000;
     end else if (load) begin
-        counter <= 2'b00;
         guards <= 3'b000;
         data_out <= data_in;
     end else if (shift_left) begin

@@ -11,7 +11,7 @@ module small_alu #(parameter N = 8) (
     wire [N-1:0] min_val;
     wire bout_ignorado;
 
-    comp_Nbits dut (
+    comp_Nbits #(.N(N)) dut (
         .A(A),
         .B(B),
         .AGTB(A_gt_B),
@@ -22,7 +22,7 @@ module small_alu #(parameter N = 8) (
     assign max_val = A_lt_B ? B : A;
     assign min_val = A_lt_B ? A : B;
 
-    full_subtractor_nbit #(.N(8)) subtrator_absoluto (
+    full_subtractor_nbit #(.N(N)) subtrator_absoluto (
         .a(max_val),
         .b(min_val),
         .bin(1'b0),

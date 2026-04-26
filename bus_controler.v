@@ -31,7 +31,21 @@ module bus_controler(
     wire f_inv_op0, f_div_zero0, f_overflow0 , f_underflow0 , f_inexact0;
     wire over0; //=done
     //instanciar o escravo 0 (Por  favor usar reset como ~es_0, alem dos outputs acima)
-    
+    tp_add_sub sum_sub(
+        .clk(clk),
+        .reset(~e_s0),
+        .start(e_s0),
+        .is_sub(addr[2]),
+        .a(a),
+        .b(b),
+        .result(c),
+        .f_div_zero(f_div_zero0),
+        .f_overflow(f_overflow0),
+        .f_underflow(f_underflow0),
+        .f_inexact(f_inexact0),
+        .f_inv_op(f_inv_op0)
+        .over(over)
+    );
     //
     assign f_div_zero0 = 1'b0;
     

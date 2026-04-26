@@ -20,7 +20,7 @@ module full_adder_Nbits #( parameter N= 8) (
             );
         end
     endgenerate
-    assign cout = carries[N-1];
+    assign cout = carries[N];
 endmodule
 
 module full_adder (
