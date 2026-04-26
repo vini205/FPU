@@ -43,7 +43,7 @@ module bus_controler(
         .f_overflow(f_overflow0),
         .f_underflow(f_underflow0),
         .f_inexact(f_inexact0),
-        .f_inv_op(f_inv_op0)
+        .f_inv_op(f_inv_op0),
         .over(over)
     );
     //
