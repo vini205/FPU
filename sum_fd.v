@@ -24,6 +24,7 @@ module sum_fd (
 
     wire sign_A = a[31];
     wire [7:0] exp_A = a[30:23];
+    
     // Se exp for 0, o bit implícito é 0 (subnormal). Caso contrário, é 1 (normal).
     wire [23:0] mant_A = {(|exp_A), a[22:0]};
 

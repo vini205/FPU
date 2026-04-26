@@ -1,4 +1,4 @@
-module tb_fpu;
+module tb_fpu();
     reg clock , reset , start;
     reg [ 31 : 0 ] a , b;
     reg [ 2 : 0 ] op; // ADD , SUB , MUL , DIV , EQ , SLT

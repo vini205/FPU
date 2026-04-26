@@ -167,7 +167,7 @@ module div_fd (
 
     // Invalid
     wire zero_por_zero = A_zero & B_zero;
-    wire inf_por_inf = is_inf_A & is_inf_B;
+    wire inf_por_inf = (is_inf_A| is_ninf_A) & (is_inf_B| is_ninf_B);
     assign f_inv_op = is_snan_A | is_snan_B | zero_por_zero | inf_por_inf|is_qnan_A | is_qnan_B;
 
     //Underflow
