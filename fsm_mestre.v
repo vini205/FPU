@@ -10,7 +10,7 @@ module fsm_mestre(
 );
 
 //Maquina de Moore com 3 estados
-reg [2:0]state;
+reg [1:0]state;
 parameter IDLE = 2'b00;      //Estado em que esta tudo pronto para uma nova operacao 
 parameter CALC = 2'b01;      //Estado em que esta calculando (busy)
 parameter DONE = 2'b10;
