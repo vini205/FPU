@@ -69,121 +69,81 @@ module shift_left #(
 endmodule
 
 
-// -------------------------------------------------------------
-// 4. Fluxo de dados (df)
-// -------------------------------------------------------------
-//
-// Organização interna:
-//   - M : registrador do divisor (N bits)
-//   - {A, Q} : registrador duplo de 2N bits tratado como unidade
-//              A = N MSBs (resto parcial)
-//              Q = N LSBs (quociente em formação)
-//
-// Operação passo a passo (coordenado pela UC):
-//   1. load_m=1  → M  ← divisor
-//      load_aq=1 → A  ← 0 , Q ← dividend
-//   2. shift_aq=1 → {A,Q} deslocado 1 bit à esquerda
-//   3. Calcula A_sub = A - M  (add_sub com sub=1)
-//   4. update_a=1 →
-//         se A_sub >= 0 (negative=0): A ← A_sub, Q[0] ← 1  (bit quociente = 1)
-//         se A_sub <  0 (negative=1): A não muda,  Q[0] ← 0  (restaura; bit quociente = 0)
-//
-// -------------------------------------------------------------
 module df #(
     parameter N = 8
 )(
     input  wire         clk,
     input  wire         rst,
-    input  wire         load_m,     // M <- divisor
+    input  wire         load_m,     
     input  wire [N-1:0] divisor,
-    input  wire         load_aq,    // A <- 0, Q <- dividend
+    input  wire         load_aq,    
     input  wire [N-1:0] dividend,
-    // Controles da UC
-    input  wire         shift_aq,   // desloca {A,Q} 1 bit à esquerda
-    input  wire         update_a,   // escreve resultado da ULA em A, seta Q[0]
-    // Saídas
+    input  wire         shift_aq,   
+    input  wire         update_a,   
+    
     output wire [N-1:0] M,
     output wire [N-1:0] A,
     output wire [N-1:0] Q,
-    output wire         negative    // (A-M) < 0 → UC observa
+    output wire         negative    
 );
 
-    // ---- registradores internos ----
-    reg [N-1:0] reg_M;
-    reg [N-1:0] reg_A;
-    reg [N-1:0] reg_Q;
+    reg [N:0] reg_M;
+    reg [N:0] reg_A;
+    reg [N-1:0] reg_Q; 
 
-    // ---- ULA: A - M ----
-    wire [N-1:0] alu_result;
-    wire         alu_neg;
+    wire [N:0] alu_result;
+    wire       alu_neg;
 
-    add_sub #(.N(N)) alu (
+    add_sub #(.N(N+1)) alu (
         .a        (reg_A),
         .b        (reg_M),
         .sub      (1'b1),
         .result   (alu_result),
         .cout     (),
         .overflow (),
-        .negative (alu_neg)
+        .negative (alu_neg) 
     );
 
     assign negative = alu_neg;
-    assign M = reg_M;
-    assign A = reg_A;
+    
+
+    assign M = reg_M[N-1:0];
+    assign A = reg_A[N-1:0]; 
     assign Q = reg_Q;
 
-    // ---- lógica sequencial ----
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            reg_M <= {N{1'b0}};
-            reg_A <= {N{1'b0}};
+            reg_M <= {(N+1){1'b0}};
+            reg_A <= {(N+1){1'b0}};
             reg_Q <= {N{1'b0}};
         end else begin
-            // Carrega M
+            
             if (load_m)
-                reg_M <= divisor;
+                reg_M <= {1'b0, divisor};
 
-            // Carrega A=0 e Q=dividend
             if (load_aq) begin
-                reg_A <= {N{1'b0}};
-                reg_Q <= dividend;
+                reg_A <= {2'b00, dividend[N-1:1]};
+                reg_Q <= {dividend[0], {(N-1){1'b0}}};
             end
 
-            // Desloca {A,Q} 1 bit à esquerda como unidade
             if (shift_aq) begin
-                reg_A <= {reg_A[N-2:0], reg_Q[N-1]};
+                reg_A <= {reg_A[N-1:0], reg_Q[N-1]};
                 reg_Q <= {reg_Q[N-2:0], 1'b0};
             end
 
-            // Atualiza A com resultado da ULA e define bit LSB de Q
             if (update_a) begin
                 if (!alu_neg) begin
-                    // A - M >= 0: aceita subtração, quociente bit = 1
                     reg_A    <= alu_result;
                     reg_Q[0] <= 1'b1;
                 end else begin
-                    // A - M < 0: restaura A (não muda), quociente bit = 0
                     reg_Q[0] <= 1'b0;
                 end
             end
+            
         end
     end
 endmodule
 
-
-// -------------------------------------------------------------
-// 5. Unidade de Controle (uc)
-//
-// FSM com os seguintes estados:
-//   IDLE    → aguarda start
-//   LOAD    → carrega M, A, Q (1 ciclo)
-//   SHIFT   → desloca {A,Q} à esquerda (1 ciclo)
-//   SUB     → UC observa negative; dispara update_a (1 ciclo)
-//   CHECK   → decrementa contador; se count=0 vai para DONE
-//   DONE    → sinaliza done=1
-//
-// Repete SHIFT→SUB→CHECK por N iterações.
-// -------------------------------------------------------------
 module uc #(
     parameter N = 24
 )(
@@ -223,7 +183,6 @@ module uc #(
         end
     end
 
-    // Lógica de próximo estado
     always @(*) begin
         next_state = state;
         case (state)
@@ -238,7 +197,6 @@ module uc #(
         endcase
     end
 
-    // Saídas (Moore)
     always @(*) begin
         load_m   = 1'b0;
         load_aq  = 1'b0;
