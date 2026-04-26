@@ -25,12 +25,11 @@ module sum_fd (
     wire sign_A = a[31];
     wire [7:0] exp_A = a[30:23];
     // Se exp for 0, o bit implícito é 0 (subnormal). Caso contrário, é 1 (normal).
-
-    wire [23:0] mant_A = {(exp_A != 8'h00), a[22:0]};
+    wire [23:0] mant_A = {(|exp_A), a[22:0]};
 
     wire sign_B = b[31];
     wire [7:0] exp_B = b[30:23];
-    wire [23:0] mant_B = {(exp_B != 8'h00), b[22:0]};
+    wire [23:0] mant_B = {(|exp_B), b[22:0]};
 
     wire [7:0] diff_exp;
     wire choose_exp;
