@@ -2,9 +2,9 @@ module mult_uc(
     input clk,
     input reset,
     input exeption,
-    output load_shift,
-    output e_norm, //enable normalizacao
-    output over
+    output reg load_shift,
+    output reg e_norm, //enable normalizacao
+    output reg over
 );
 
 reg [2:0]state;
@@ -22,7 +22,7 @@ down_counter #(5) dut(
     .rst(1'b0),
     .load(load_down),
     .start(~load_down),
-    .data_in(5'b10111), //=23
+    .data_in(5'b11000), //=23
     .is_over(down_over)
 );
 
