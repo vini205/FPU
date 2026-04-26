@@ -103,7 +103,88 @@ always @(e_norm) begin
     if(e_norm) mult_reg = s_reg;    
 end
 
-wire m_normalized;
+// ========================================================================
+// CORREÇÃO 1: Largura do Barramento (O Bug do 00000100)
+// ========================================================================
+// Extração correta dos 24 bits inteiros (incluindo o '1' implícito)
+wire [23:0] full_mantissa = (mult_reg[47]) ? mult_reg[47:24] : mult_reg[46:23];
+wire [22:0] m_normalized = full_mantissa[22:0];
+
+// ========================================================================
+// CORREÇÃO 2: Preparação de Expoentes e Subnormais
+// ========================================================================
+// Se a entrada for um subnormal puro (expoente 0), a matemática exige usar 1
+wire [7:0] eff_exp_a = (~|a[30:23]) ? 8'd1 : a[30:23];
+wire [7:0] eff_exp_b = (~|b[30:23]) ? 8'd1 : b[30:23];
+
+wire [7:0] e_sum;
+wire cout_e;
+full_adder_Nbits #(8) adder_e(
+    .a(eff_exp_a), 
+    .b(eff_exp_b), 
+    .cin(mult_reg[47]), // Soma 1 se a mantissa transbordou à esquerda
+    .sum(e_sum),
+    .cout(cout_e)
+);
+
+wire [8:0] e_sub;
+wire bout_e;
+full_subtractor_nbit #(9) sub(
+    .a({cout_e, e_sum}), // minuendo
+    .b(9'b00111_1111),   // subtraendo (Bias 127)
+    .bin(1'b0),
+    .diff(e_sub),
+    .bout(bout_e)
+);
+
+// Se bout_e 1, ou e_sub 0, subnormal
+wire is_subnormal = bout_e | (~|e_sub);
+wire [9:0] denorm_shift;
+
+// A matemática mágica do Complemento de 2: 
+// {bout_e, e_sub} atua como extensão de sinal. Calculamos: Shift = 1 - (E_calculado)
+full_subtractor_nbit #(10) calc_denorm_shift (
+    .a(10'd1),
+    .b({bout_e, e_sub}), 
+    .bin(1'b0),
+    .diff(denorm_shift),
+    .bout()
+);
+
+wire shift_limit0, shift_limit1;
+comp_Nbits #(10) limit_comp (
+    .A(denorm_shift),
+    .B(10'd24),
+    .AGTB(shift_limit0),
+    .AEQB(shift_limit1)
+);
+
+// Empurra a fração para a direita criando o underflow gradual perfeito
+wire shift_out_of_bounds = shift_limit0 | shift_limit1;
+wire [23:0] denorm_mantissa = shift_out_of_bounds ? 24'd0 : (full_mantissa >> denorm_shift);
+
+// ========================================================================
+// FLAGS & EMPACOTAMENTO FINAL
+// ========================================================================
+wire f_overflow_internal = (e_sub[8] | &e_sub[7:0]) & ~exeption & ~bout_e;
+assign f_overflow = f_overflow_internal;
+
+assign f_underflow = is_subnormal & ~exeption; 
+
+wire has_remnants = |mult_reg[22:0]; 
+assign f_inexact = (has_remnants | f_overflow_internal | f_underflow) & ~exeption;
+
+wire [7:0] final_exp  = is_subnormal ? 8'h00 : e_sub[7:0];
+wire [22:0] final_frac = is_subnormal ? denorm_mantissa[22:0] : m_normalized;
+wire sign_out = a[31] ^ b[31];
+
+assign c = (exeption)            ? c_exeption : 
+           (f_overflow_internal) ? {sign_out, 8'hFF, 23'd0} : 
+                                   {sign_out, final_exp, final_frac};
+
+endmodule
+/* 
+wire [23:0] m_normalized;
 assign m_normalized = (mult_reg[47]) ? (mult_reg[46:24]) : (mult_reg[45:23]);
 
 wire [7:0]e_sum;
@@ -127,8 +208,8 @@ full_subtractor_nbit #(9) sub(
 
 assign f_underflow = bout_e & ~exeption;
 assign f_overflow = (e_sub[8] | &e_sub[7:0])& ~exeption;
-assign f_inexact = (|(mult_reg[22:0]) | (mult_reg[23]&mult_reg[47]) )& ~exeption;
+assign f_inexact = (|(mult_reg[22:0]) | (mult_reg[23]&mult_reg[47]) )& ~exeption | f_overflow;
 
 assign c = (exeption) ? (c_exeption) : (f_overflow) ? ({a[31]^b[31], 31'h7f800000}) : (f_underflow) ? ({a[31]^b[31], 8'h00, m_normalized}) : ({a[31]^b[31], e_sub[7:0], m_normalized});
 
-endmodule
+endmodule */

@@ -71,6 +71,7 @@ module mult_tb;
                 $display("[PASSOU] %0s", test_name);
             end else begin
                 $display("---------------------------------------------------");
+                $display("A -> %h \t B -> %h  ",a,b);
                 $display("[FALHA] %0s", test_name);
                 if (!pass_res)
                     $display("   > Resultado Incorreto: Obtido %h | Esperado %h", result, exp_res);
@@ -118,7 +119,7 @@ module mult_tb;
         // 6. Infinito Negativo * -1.0 = +Infinito
         run_test("-Infinito * -1.0", 32'hFF80_0000, 32'hBF80_0000, 32'h7F80_0000, 1'b0, 1'b0, 1'b0, 1'b0);
 
-        
+
 
         $display("===================================================");
         $display("               TESTES FINALIZADOS                  ");
