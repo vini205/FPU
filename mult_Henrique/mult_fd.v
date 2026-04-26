@@ -30,7 +30,6 @@ exeptions_number_detector b_ex(
 
 assign f_inv_op = sNaNa | sNaNb | ((zeroa | zerob) & (infa | infb));
 
-assign f_inv_op = sNaNa | sNaNb ;
 
 //Extremos
 wire exeptiona, exeptionb;
