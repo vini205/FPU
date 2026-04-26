@@ -54,7 +54,18 @@ module bus_controler(
     wire f_inv_op1, f_div_zero1, f_overflow1 , f_underflow1 , f_inexact1;
     wire over1; //=done
     //instanciar o escravo 1 (MULT) (Por  favor usar reset como ~es_1, alem dos outputs acima)
-    
+        mult tp_mult (
+            .clk(clk),
+            .reset(~e_s1),
+            .a(a),
+            .b(b),
+            .c(c1),
+            .f_inv_op(f_inv_op1),
+            .f_overflow(f_overflow1),
+            .f_underflow(f_underflow1),
+            .f_inexact(f_inexact1),
+            .over(over1)
+        );
     //
     assign f_div_zero1 = 1'b0;
 
