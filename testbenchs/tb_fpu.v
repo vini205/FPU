@@ -38,6 +38,7 @@ module tb_fpu();
             start=1;#10
             start=0;
             wait(done);
+            
             passed = (c == expected_result);
             case (op_in)
                 3'b000:
