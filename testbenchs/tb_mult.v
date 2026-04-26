@@ -114,7 +114,7 @@ module mult_tb;
         
         // 5. Resultado Inexato
         // Ocorre perda do LSB. A flag 'inexact' deve subir.
-        run_test("Resultado Inexato (Arredondamento)", 32'h4000_0001, 32'h3F80_0001, 32'h4000_0001, 1'b0, 1'b0, 1'b0, 1'b1);
+        run_test("Resultado Inexato...", 32'h4000_0001, 32'h3F80_0001, 32'h4000_0002, 1'b0, 1'b0, 1'b0, 1'b1);
         
         // 6. Infinito Negativo * -1.0 = +Infinito
         run_test("-Infinito * -1.0", 32'hFF80_0000, 32'hBF80_0000, 32'h7F80_0000, 1'b0, 1'b0, 1'b0, 1'b0);

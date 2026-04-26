@@ -162,17 +162,27 @@ comp_Nbits #(10) limit_comp (
 // Empurra a fração para a direita criando o underflow gradual perfeito
 wire shift_out_of_bounds = shift_limit0 | shift_limit1;
 wire [23:0] denorm_mantissa = shift_out_of_bounds ? 24'd0 : (full_mantissa >> denorm_shift);
-
 // ========================================================================
-// FLAGS & EMPACOTAMENTO FINAL
+// FLAGS & EMPACOTAMENTO FINAL (Com precisão IEEE 754)
 // ========================================================================
 wire f_overflow_internal = (e_sub[8] | &e_sub[7:0]) & ~exeption & ~bout_e;
 assign f_overflow = f_overflow_internal;
 
-assign f_underflow = is_subnormal & ~exeption; 
+// 1. Verifica se perdemos bits úteis na multiplicação original (48 bits)
+wire mult_inexact = mult_reg[47] ? |mult_reg[23:0] : |mult_reg[22:0];
 
-wire has_remnants = |mult_reg[22:0]; 
-assign f_inexact = (has_remnants | f_overflow_internal | f_underflow) & ~exeption;
+// 2. Verifica se perdemos bits ao empurrar para a direita (Denormalização)
+// Se ao deslocar de volta para a esquerda o valor mudar, significa que bits úteis caíram
+wire lost_in_denorm = shift_out_of_bounds ? |full_mantissa : ((denorm_mantissa << denorm_shift) != full_mantissa);
+
+// Houve perda de dados no geral?
+wire any_lost_bits = mult_inexact | (is_subnormal & lost_in_denorm);
+
+// REGRA DE OURO IEEE 754: Underflow só sobe se for minúsculo E inexato
+assign f_underflow = is_subnormal & any_lost_bits & ~exeption; 
+
+// Inexato sobe se perdemos bits na fração ou se os limites do expoente estouraram
+assign f_inexact = (any_lost_bits | f_overflow_internal | f_underflow) & ~exeption;
 
 wire [7:0] final_exp  = is_subnormal ? 8'h00 : e_sub[7:0];
 wire [22:0] final_frac = is_subnormal ? denorm_mantissa[22:0] : m_normalized;
@@ -184,6 +194,9 @@ assign c = (exeption)            ? c_exeption :
 
 endmodule
 /* 
+
+SEU CODIGO ORIGINAL ESTA AQUI EM BAIXO   | 
+                                        \|/
 wire [23:0] m_normalized;
 assign m_normalized = (mult_reg[47]) ? (mult_reg[46:24]) : (mult_reg[45:23]);
 
