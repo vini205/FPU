@@ -148,7 +148,7 @@ module tb_fpu();
         // 2^-120 / 2^10 = 2^-130 (Underflow Gradual / Subnormal)
         run_test(32'h03800000, 32'h44800000, 32'h00080000,  3'b011);
 
-        $display("MULTIPLICAÇÂO")
+        $display("MULTIPLICAÇÂO");
 
         run_test();
          
